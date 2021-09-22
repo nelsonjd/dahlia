@@ -7,24 +7,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model flyway_schema_history {
-  installed_rank Int      @id
-  version        String?  @db.VarChar(50)
-  description    String   @db.VarChar(200)
-  type           String   @db.VarChar(20)
-  script         String   @db.VarChar(1000)
-  checksum       Int?
-  installed_by   String   @db.VarChar(100)
-  installed_on   DateTime @default(now()) @db.Timestamp(0)
-  execution_time Int
-  success        Boolean
-
-  @@index([success], map: "flyway_schema_history_s_idx")
-}
-
-model users {
-  user_id       Int     @id @default(autoincrement())
-  username      String? @db.VarChar(50)
-  password      String? @db.VarChar(255)
-  refresh_token String? @db.VarChar(255)
+model User {
+  id           Int     @id @default(autoincrement())
+  username     String  @unique
+  password     String
+  refreshToken String?
 }

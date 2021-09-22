@@ -61,7 +61,7 @@ const root = {
 
         const id = parseInt(decoded.sub);
 
-        const { user } = await userRespository.findById({ id });
+        const user = await userRespository.findById({ id });
 
         if (!user || user.refreshToken !== refreshToken)
         {
@@ -90,10 +90,10 @@ const root = {
     login: async (args) => {
         const { username, password } = args;
 
-        const { user } = await userRespository.findByUsername({
+        const user = await userRespository.findByUsername({
             username: username,
             password: password
-        })
+        });
 
         if (!user)
         {
@@ -113,7 +113,7 @@ const root = {
         );
 
         user.refreshToken = refreshToken;
-        await userRespository.updateRefreshToken(user);
+        await userRespository.update(user);
 
         return {
             refreshToken,
@@ -134,7 +134,7 @@ const root = {
 
         const id = parseInt(decoded.sub);
 
-        const { user } = await userRespository.findById({ id });
+        const user = await userRespository.findById({ id });
 
         if (!user || user.refreshToken !== refreshToken)
         {
@@ -142,7 +142,7 @@ const root = {
         }
 
         user.refreshToken = null;
-        await userRespository.updateRefreshToken(user);
+        await userRespository.update(user);
 
         const payload =  {
             user: {
@@ -157,9 +157,9 @@ const root = {
         const password = await bcrypt.hash(args.password, 10);
         const username = args.username;
 
-        const { user, connection } = await userRespository.findByUsername({
+        let user = await userRespository.findByUsername({
             username: username
-        }, null, true).catch(err =>
+        }).catch(err =>
         {
             throw err;
         });
@@ -168,28 +168,28 @@ const root = {
             throw new Error('user already exists');
         }
         
-        const { id } = await userRespository.create({
+        user = await userRespository.create({
             username: username,
             password: password
-        }, connection, true).catch(err =>
+        }).catch(err =>
         {
             throw err;
         });
 
-        if (!id) throw new Error('insert id is null');
-
         const refreshToken = jsonwebtoken.sign(
-            { sub: id.toString() },
+            { sub: user.id.toString() },
             refreshTokenSecret
         );
 
-        await userRespository.updateRefreshToken({id, refreshToken}, connection);
+        user.refreshToken = refreshToken;
+
+        await userRespository.update(user);
             
         return {
             refreshToken,
             user: {
-                id,
-                username: args.username
+                id: user.id,
+                username: user.username
             }
         };
     }
