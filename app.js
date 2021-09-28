@@ -6,6 +6,7 @@ const { graphqlHTTP } = require('express-graphql');
 const { userRespository } = require('./repositories/userRepository');
 const { authorizeContext } = require('./models/authentication');
 const bcrypt = require('bcrypt');
+const cors = require('cors');
 
 const app = express();
 
@@ -203,6 +204,8 @@ app.use(expressJWT({
     algorithms: ['HS256'],
     credentialsRequired: false
 }));
+
+app.use(cors());
 
 app.use('/graphql', graphqlHTTP({
     schema: schema,
